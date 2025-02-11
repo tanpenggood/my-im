@@ -250,7 +250,7 @@
 <body>
     <h1>IM 群聊</h1>
     <div class="current-user">
-        当前用户ID: <span id="currentUserDisplay"></span>
+        您的用户ID: <span id="currentUserDisplay"></span>
     </div>
     <div class="login-container" id="loginContainer" style="display: none;">
         <input type="hidden" id="userId">
@@ -330,7 +330,7 @@
             // 获取当前页面的主机名和端口
             const host = window.location.hostname;
             // netty 使用的端口
-            const wsPort = '8888';
+            const wsPort = '8080';
             
             // 构建 WebSocket URL
             const wsUrl = `${protocol}//${host}:${wsPort}/ws`;
@@ -373,7 +373,7 @@
 
         async function loadGroups() {
             try {
-                const response = await fetch('http://localhost:8080/api/groups');
+                const response = await fetch('/api/groups');
                 const groups = await response.json();
                 const groupList = document.getElementById('groupList');
                 groupList.innerHTML = '';

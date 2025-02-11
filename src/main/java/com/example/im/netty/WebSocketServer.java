@@ -42,8 +42,8 @@ public class WebSocketServer {
                     }
                 });
         
-        bootstrap.bind(8888).sync();
-        log.info("WebSocket server started on port 8888");
+        bootstrap.bind(8080).sync();
+        log.info("WebSocket server started on port 8080");
     }
     
     @PreDestroy
