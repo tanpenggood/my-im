@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <title>IM 群聊</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .container {
+            display: flex;
+            gap: 20px;
+            height: calc(100vh - 100px);
+            margin-top: 20px;
+        }
+        .chat-container {
+            flex: 2;
+            min-width: 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+        .group-list {
+            width: 160px;
+            min-width: 160px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            padding: 10px;
+            background-color: #f8f9fa;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+        .message-area {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding-right: 10px;
+        }
+        .input-area {
+            display: flex;
+            gap: 10px;
+            margin-top: auto;
+        }
+        textarea {
+            flex: 1;
+            padding: 8px;
+            resize: none;
+            height: 60px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-family: inherit;
+            line-height: 1.5;
+        }
+        .message {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 8px;
+            padding: 10px 10px;
+            margin-bottom: 16px;
+            max-width: 100%;
+            background-color: #e3f2fd;
+            border-radius: 3px;
+        }
+        .message>p {
+            margin: 0;
+            white-space: pre-line;
+        }
+        .message-user {
+            font-weight: bold;
+            min-width: max-content;  /* 确保用户名不会换行 */
+        }
+        .message-time {
+            color: #666;
+            font-size: 0.85em;
+            margin-left: 8px;
+        }
+        .message-content {
+            word-break: break-word;
+            max-width: 100%;
+            white-space: pre-wrap;
+        }
+        .message.other {
+            background-color: #f5f5f5;
+            margin-right: 20px;
+        }
+        input[type="text"] {
+            flex: 1;
+            padding: 5px;
+        }
+        button {
+            padding: 5px 15px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .group-item {
+            padding: 8px 12px;
+            margin: 5px 0;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: all 0.2s ease;
+            background-color: white;
+            border: 1px solid #dee2e6;
+        }
+        .group-item:hover {
+            background-color: #e9ecef;
+            border-color: #adb5bd;
+        }
+        .group-item.active {
+            background-color: #007bff;
+            color: white;
+            border-color: #0056b3;
+        }
+        .group-list h3 {
+            margin: 0 0 10px 0;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #dee2e6;
+        }
+        .groups-scroll-container {
+            flex: 1;
+            overflow-y: auto;
+            min-height: 100px;
+            max-height: calc(100vh - 250px);
+            margin-bottom: 10px;
+            scrollbar-width: thin;
+            scrollbar-color: #adb5bd #f8f9fa;
+        }
+        .groups-scroll-container::-webkit-scrollbar {
+            width: 6px;
+        }
+        .groups-scroll-container::-webkit-scrollbar-track {
+            background: #f8f9fa;
+            border-radius: 3px;
+        }
+        .groups-scroll-container::-webkit-scrollbar-thumb {
+            background-color: #adb5bd;
+            border-radius: 3px;
+            border: 2px solid #f8f9fa;
+        }
+        .groups-scroll-container::-webkit-scrollbar-thumb:hover {
+            background-color: #6c757d;
+        }
+        .create-group-container {
+            margin-top: auto;
+            padding-top: 10px;
+            border-top: 1px solid #dee2e6;
+        }
+        .group-display {
+            display: flex;
+            align-items: center;
+            margin-bottom: 5px;
+            padding: 5px;
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            font-family: monospace;
+            height: 24px;
+        }
+        .group-prefix {
+            color: #495057;
+            padding: 0 2px 0 8px;
+        }
+        .group-number {
+            color: #28a745;
+            font-weight: bold;
+            padding-left: 2px;
+        }
+        .create-group-btn {
+            width: 100%;
+            padding: 8px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            font-weight: bold;
+        }
+        .create-group-btn:hover {
+            background-color: #218838;
+        }
+        .current-user {
+            background-color: #f8f9fa;
+            padding: 8px 15px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            border: 1px solid #dee2e6;
+            font-size: 14px;
+        }
+        #currentUserDisplay {
+            font-weight: bold;
+            color: #007bff;
+        }
+        .default-group-badge {
+            font-size: 12px;
+            background-color: #ffc107;
+            color: #000;
+            padding: 2px 6px;
+            border-radius: 10px;
+            margin-left: 5px;
+            font-weight: normal;
+        }
+        .create-group-btn:disabled {
+            background-color: #6c757d;
+            cursor: not-allowed;
+        }
+        .online-users-list {
+            width: 120px;
+            min-width: 120px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            padding: 10px;
+            background-color: #f8f9fa;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+        .online-users-container {
+            flex: 1;
+            overflow-y: auto;
+            min-height: 100px;
+            max-height: calc(100vh - 250px);
+            margin-bottom: 10px;
+            scrollbar-width: thin;
+            scrollbar-color: #adb5bd #f8f9fa;
+        }
+        .online-user-item {
+            padding: 8px 12px;
+            margin: 5px 0;
+            border-radius: 5px;
+            background-color: white;
+            border: 1px solid #dee2e6;
+        }
+    </style>
+</head>
+<body>
+    <h1>IM 群聊</h1>
+    <div class="current-user">
+        当前用户ID: <span id="currentUserDisplay"></span>
+    </div>
+    <div class="login-container" id="loginContainer" style="display: none;">
+        <input type="hidden" id="userId">
+    </div>
+    <div class="container" id="chatContainer" style="display: none;">
+        <div class="group-list">
+            <h3>群组列表</h3>
+            <div class="groups-scroll-container">
+                <div id="groupList"></div>
+            </div>
+            <div class="create-group-container">
+                <div class="group-display">
+                    <span class="group-prefix">G-</span>
+                    <span id="newGroupId" class="group-number"></span>
+                </div>
+                <button onclick="createGroup()" class="create-group-btn">创建新群组</button>
+            </div>
+        </div>
+        <div class="chat-container">
+            <h3>当前群组: <span id="currentGroup"></span></h3>
+            <div class="message-area" id="messageArea"></div>
+            <div class="input-area">
+                <textarea id="messageInput" placeholder="输入消息..."></textarea>
+                <button onclick="sendMessage()">发送</button>
+            </div>
+        </div>
+        <div class="online-users-list">
+            <h3>在线用户</h3>
+            <div class="online-users-container" id="onlineUsersList">
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let ws;
+        let currentUserId = '';
+        let currentGroupId = '';
+        let groupRefreshInterval;
+        const messageHistory = JSON.parse(sessionStorage.getItem('messageHistory') || '{}');
+
+        function generateUserId() {
+            let userId = sessionStorage.getItem('userId');
+            if (!userId) {
+                const randomNum = Math.floor(Math.random() * 1000000).toString().padStart(6, '0');
+                userId = 'u' + randomNum;
+                sessionStorage.setItem('userId', userId);
+            }
+            return userId;
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const userId = generateUserId();
+            document.getElementById('userId').value = userId;
+            
+            const savedGroupId = sessionStorage.getItem('currentGroupId');
+            if (savedGroupId) {
+                currentGroupId = savedGroupId;
+            }
+            
+            login();
+        });
+
+        function login() {
+            const userId = document.getElementById('userId').value.trim();
+            currentUserId = userId;
+            document.getElementById('currentUserDisplay').textContent = userId;
+            document.getElementById('loginContainer').style.display = 'none';
+            document.getElementById('chatContainer').style.display = 'flex';
+            connectWebSocket();
+            loadGroups();
+            groupRefreshInterval = setInterval(loadGroups, 3000);
+        }
+
+        function connectWebSocket() {
+            // 获取当前页面的协议（http: 或 https:）
+            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            // 获取当前页面的主机名和端口
+            const host = window.location.hostname;
+            // netty 使用的端口
+            const wsPort = '8888';
+            
+            // 构建 WebSocket URL
+            const wsUrl = `${protocol}//${host}:${wsPort}/ws`;
+            
+            ws = new WebSocket(wsUrl);
+            
+            ws.onopen = () => {
+                console.log('WebSocket连接已建立');
+                // 自动加入默认群组并设置为当前群组
+                currentGroupId = 'G00001';
+                joinGroup('G00001');
+            };
+            
+            ws.onmessage = (event) => {
+                const message = JSON.parse(event.data);
+                
+                if (message.fromUser === 'system' && message.content.startsWith('ERROR:')) {
+                    if (message.content === 'ERROR:MAX_GROUPS_REACHED') {
+                        alert('已达到最大群组数量限制（10个）');
+                    }
+                    return;
+                }
+                
+                if (message.fromUser === 'system' && message.content.startsWith('ONLINE_USERS:')) {
+                    const users = message.content.substring('ONLINE_USERS:'.length).split(',');
+                    updateOnlineUsers(users);
+                    return;
+                }
+                
+                displayMessage(message);
+            };
+            
+            ws.onclose = () => {
+                console.log('WebSocket连接已关闭');
+                sessionStorage.setItem('messageHistory', JSON.stringify(messageHistory));
+                sessionStorage.setItem('currentGroupId', currentGroupId);
+                setTimeout(connectWebSocket, 5000);
+            };
+        }
+
+        async function loadGroups() {
+            try {
+                const response = await fetch('http://localhost:8080/api/groups');
+                const groups = await response.json();
+                const groupList = document.getElementById('groupList');
+                groupList.innerHTML = '';
+                
+                groups.forEach(groupId => {
+                    const div = document.createElement('div');
+                    div.className = `group-item ${groupId === currentGroupId ? 'active' : ''}`;
+                    if (groupId === 'G00001') {
+                        div.innerHTML = `${groupId} <span class="default-group-badge">默认群组</span>`;
+                    } else {
+                        div.textContent = groupId;
+                    }
+                    div.onclick = () => switchGroup(groupId);
+                    groupList.appendChild(div);
+                });
+
+                if (!currentGroupId) {
+                    switchGroup('G00001');
+                }
+            } catch (error) {
+                console.error('加载群组失败:', error);
+            }
+        }
+
+        function joinGroup(groupId) {
+            currentGroupId = groupId;
+            sessionStorage.setItem('currentGroupId', groupId);
+            document.getElementById('currentGroup').textContent = groupId;
+            document.querySelectorAll('.group-item').forEach(item => {
+                item.classList.remove('active');
+                if (item.textContent === groupId) {
+                    item.classList.add('active');
+                }
+            });
+            document.getElementById('messageArea').innerHTML = '';
+            
+            const joinMessage = {
+                fromUser: currentUserId,
+                content: 'JOIN_GROUP:' + groupId,
+                groupId: groupId,
+                timestamp: Date.now()
+            };
+            if (ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify(joinMessage));
+            }
+        }
+
+        function generateGroupId() {
+            return Math.floor(Math.random() * 100000).toString().padStart(5, '0');
+        }
+
+        function createGroup() {
+            const existingGroups = document.querySelectorAll('.group-item').length;
+            if (existingGroups >= 10) {
+                alert('已达到最大群组数量限制（10个）');
+                return;
+            }
+            
+            const groupNumber = generateGroupId();
+            const fullGroupId = 'G' + groupNumber;
+            
+            joinGroup(fullGroupId);
+            loadGroups();
+        }
+
+        function sendMessage() {
+            if (!currentGroupId) {
+                alert('请先选择群组');
+                return;
+            }
+            
+            const messageInput = document.getElementById('messageInput');
+            const content = messageInput.value.trim();
+            
+            if (!content) {
+                return;
+            }
+
+            const message = {
+                fromUser: currentUserId,
+                content: content,
+                groupId: currentGroupId,
+                timestamp: Date.now()
+            };
+
+            ws.send(JSON.stringify(message));
+            messageInput.value = '';
+        }
+
+        function switchGroup(groupId) {
+            if (currentGroupId) {
+                const messageArea = document.getElementById('messageArea');
+                messageHistory[currentGroupId] = messageArea.innerHTML;
+            }
+
+            currentGroupId = groupId;
+            
+            document.querySelectorAll('.group-item').forEach(item => {
+                item.classList.remove('active');
+                if (item.textContent.includes(groupId)) {
+                    item.classList.add('active');
+                }
+            });
+
+            const messageArea = document.getElementById('messageArea');
+            messageArea.innerHTML = messageHistory[groupId] || '';
+            messageArea.scrollTop = messageArea.scrollHeight;
+            
+            document.getElementById('currentGroup').textContent = groupId;
+
+            const joinMessage = {
+                fromUser: currentUserId,
+                content: 'JOIN_GROUP:' + groupId,
+                groupId: groupId,
+                timestamp: Date.now()
+            };
+            
+            if (ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify(joinMessage));
+            }
+        }
+
+        function displayMessage(message) {
+            if (message.groupId !== currentGroupId) {
+                if (!messageHistory[message.groupId]) {
+                    messageHistory[message.groupId] = '';
+                }
+                const tempDiv = document.createElement('div');
+                const time = new Date(message.timestamp).toLocaleTimeString();
+                tempDiv.className = `message ${message.fromUser === currentUserId ? 'self' : 'other'}`;
+                tempDiv.innerHTML = `
+                    <strong>${message.fromUser}</strong> 
+                    <span style="color: #666; font-size: 0.8em;">${time}</span><br>
+                    ${message.content}
+                `;
+                messageHistory[message.groupId] += tempDiv.outerHTML;
+                sessionStorage.setItem('messageHistory', JSON.stringify(messageHistory));
+                return;
+            }
+
+            const messageArea = document.getElementById('messageArea');
+            const div = document.createElement('div');
+            div.className = `message ${message.fromUser === currentUserId ? 'self' : 'other'}`;
+            
+            const time = new Date(message.timestamp).toLocaleTimeString();
+            div.innerHTML = `
+                <p>
+                    <strong>${message.fromUser}</strong> 
+                    <span style="color: #666; font-size: 0.8em;">${time}</span>
+                </p>
+                <p>${message.content}</p>`;
+            
+            messageArea.appendChild(div);
+            messageArea.scrollTop = messageArea.scrollHeight;
+
+            messageHistory[currentGroupId] = messageArea.innerHTML;
+            sessionStorage.setItem('messageHistory', JSON.stringify(messageHistory));
+        }
+
+        document.getElementById('messageInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+
+        window.onbeforeunload = function() {
+            if (groupRefreshInterval) {
+                clearInterval(groupRefreshInterval);
+            }
+        };
+
+        function updateOnlineUsers(users) {
+            const onlineUsersList = document.getElementById('onlineUsersList');
+            onlineUsersList.innerHTML = '';
+            
+            users.forEach(userId => {
+                const div = document.createElement('div');
+                div.className = 'online-user-item';
+                div.textContent = userId;
+                if (userId === currentUserId) {
+                    div.style.backgroundColor = '#e3f2fd';
+                    div.style.fontWeight = 'bold';
+                }
+                onlineUsersList.appendChild(div);
+            });
+        }
+    </script>
+</body>
+</html> 
