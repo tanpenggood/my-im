@@ -496,18 +496,21 @@
         }
 
         function displayMessage(message) {
+            const time = new Date(message.timestamp).toLocaleTimeString();
+            const innerHTML = `
+                <p style="display: flex; flex-direction: row; align-items: center;">
+                    <strong>${message.fromUser}</strong> 
+                    <span style="color: #666; font-size: 0.8em;">${time}</span>
+                </p>
+                <p>${message.content}</p>`;
+
             if (message.groupId !== currentGroupId) {
                 if (!messageHistory[message.groupId]) {
                     messageHistory[message.groupId] = '';
                 }
                 const tempDiv = document.createElement('div');
-                const time = new Date(message.timestamp).toLocaleTimeString();
                 tempDiv.className = `message ${message.fromUser === currentUserId ? 'self' : 'other'}`;
-                tempDiv.innerHTML = `
-                    <strong>${message.fromUser}</strong> 
-                    <span style="color: #666; font-size: 0.8em;">${time}</span><br>
-                    ${message.content}
-                `;
+                tempDiv.innerHTML = innerHTML;
                 messageHistory[message.groupId] += tempDiv.outerHTML;
                 sessionStorage.setItem('messageHistory', JSON.stringify(messageHistory));
                 return;
@@ -516,14 +519,7 @@
             const messageArea = document.getElementById('messageArea');
             const div = document.createElement('div');
             div.className = `message ${message.fromUser === currentUserId ? 'self' : 'other'}`;
-            
-            const time = new Date(message.timestamp).toLocaleTimeString();
-            div.innerHTML = `
-                <p>
-                    <strong>${message.fromUser}</strong> 
-                    <span style="color: #666; font-size: 0.8em;">${time}</span>
-                </p>
-                <p>${message.content}</p>`;
+            div.innerHTML = innerHTML;
             
             messageArea.appendChild(div);
             messageArea.scrollTop = messageArea.scrollHeight;
