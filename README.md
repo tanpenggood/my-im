@@ -16,6 +16,8 @@
 - 后端：
     - Spring Boot 2.7.0
     - Netty 4.1.86.Final
+    - OpenJDK 1.8
+    - Maven 3.6.0
 - 前端：
     - JavaScript
     - HTML
@@ -24,6 +26,15 @@
 ## 效果图
 
 ![IM.jpeg](./IM.jpeg)
+
+## 部署
+
+```bash
+mvn clean package
+
+# 后台运行，丢弃日志
+nohup java -jar -Xms128m -Xmx128m my-im.jar >/dev/null 2>&1 &
+```
 
 ## 注意事项
 
